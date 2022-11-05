@@ -8,17 +8,24 @@ import {
   useState,
 } from "react";
 import { io, Socket } from "socket.io-client";
+import {
+  ClientToServerEvents,
+  ServerToClientEvents,
+} from "../../../common/types";
 
 const SocketContext = createContext<
   | {
-      socket: Socket;
+      socket: Socket<ServerToClientEvents, ClientToServerEvents>;
       isConnected: boolean;
     }
   | { isConnected: false }
 >({ isConnected: false });
 
 const useInitSocket = () => {
-  const socket = useMemo(() => io("http://localhost:3000"), []);
+  const socket: Socket<ServerToClientEvents, ClientToServerEvents> = useMemo(
+    () => io("http://localhost:3000"),
+    []
+  );
   const [isConnected, setIsConnected] = useState(socket.connected);
 
   useEffect(() => {
