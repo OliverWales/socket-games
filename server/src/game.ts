@@ -1,12 +1,10 @@
+import { Board, Game, GameState } from "../../common/types";
 import {
-  Board,
-  Game,
-  GameState,
   FOUR_IN_A_ROW_WIDTH,
   FOUR_IN_A_ROW_HEIGHT,
   FIVE_IN_A_ROW_WIDTH,
   FIVE_IN_A_ROW_HEIGHT,
-} from "../../common/types";
+} from "../../common/constants";
 import { getCoords, getSparseRef } from "./utils";
 
 export const createGame = (type: Game, turn: string): GameState => {
@@ -18,14 +16,14 @@ export const createGame = (type: Game, turn: string): GameState => {
         type,
         board: createBoard(FOUR_IN_A_ROW_WIDTH, FOUR_IN_A_ROW_HEIGHT),
         heights: new Array(FOUR_IN_A_ROW_WIDTH).fill(0),
-        mode: { type: "in_progress", turn },
+        mode: { type: "not_started", turn },
       };
     case Game.FIVE_IN_A_ROW:
       return {
         type,
         board: createBoard(FIVE_IN_A_ROW_WIDTH, FIVE_IN_A_ROW_HEIGHT),
         heights: new Array(FIVE_IN_A_ROW_WIDTH).fill(0),
-        mode: { type: "in_progress", turn },
+        mode: { type: "not_started", turn },
       };
     default:
       throw new Error(`Game type not implemented: ${type}`);
@@ -112,10 +110,14 @@ const getNextTurn = (players: string[], currentTurn: string) => {
 
 export const getNextState = (
   gameState: GameState,
-  memberIds: string[],
+  sessionIds: string[],
   x: number
 ): GameState => {
-  if (gameState.mode.type !== "in_progress") return gameState;
+  if (
+    gameState.mode.type !== "in_progress" &&
+    gameState.mode.type !== "not_started"
+  )
+    return gameState;
 
   const currentPlayer = gameState.mode.turn;
   const y = gameState.board.height - gameState.heights[x] - 1;
@@ -155,7 +157,7 @@ export const getNextState = (
         ...gameState,
         mode: {
           type: "in_progress",
-          turn: getNextTurn(memberIds, currentPlayer),
+          turn: getNextTurn(sessionIds, currentPlayer),
         },
         board: newBoard,
         heights: newHeights,

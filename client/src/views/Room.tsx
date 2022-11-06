@@ -14,10 +14,15 @@ function Room() {
   const [room, setRoom] = useState<RoomType | null>(null);
   const [error, setError] = useState<Error | null>(null);
 
-  // On load, request to join room
   useEffect(() => {
+    // On load, request to join room
     if (!s.isConnected || !roomId) return;
     s.socket.emit("join_room", roomId);
+
+    // On leave, notify server
+    return () => {
+      s.socket.emit("leave_room", roomId);
+    };
   }, [s.isConnected, roomId]);
 
   if (!s.isConnected || !roomId) {

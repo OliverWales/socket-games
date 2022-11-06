@@ -1,18 +1,24 @@
 import cors from "cors";
 import express from "express";
 import http from "http";
-import { Server } from "socket.io";
+import { Server, Socket } from "socket.io";
+import { v4 } from "uuid";
 
-import { MAX_CAPACITY } from "../../common/types";
-import { CODE_REGEX } from "../../common/roomCode";
+import { MAX_CAPACITY } from "../../common/constants";
 import {
   ClientToServerEvents,
   ServerToClientEvents,
-  Error,
-  Room,
-} from "../../common/types";
+} from "../../common/socketEvents";
+import { CODE_REGEX } from "../../common/roomCode";
+import { Error, Room } from "../../common/types";
 import { addUserToRoom, createRoom, removeUserFromRoom } from "./room";
 import { getNextState } from "./game";
+import { shorten } from "./utils";
+
+// Log key:
+// <socket>: socket ID
+// (session): first 8 chars of session ID
+// [room]: room code
 
 const app = express();
 app.use(cors());
@@ -26,35 +32,72 @@ const io = new Server<ClientToServerEvents, ServerToClientEvents>(server, {
   },
 });
 
+const sessionIdMap = new Map<string, string>();
 const rooms = new Map<string, Room>();
+const roomsForDeletion = new Map<string, NodeJS.Timeout>();
+
+const getSessionId = (
+  socket: Socket<ClientToServerEvents, ServerToClientEvents>
+) => {
+  const { id: socketId } = socket;
+  if (
+    socket.handshake.query.sessionId &&
+    sessionIdMap.has(socket.handshake.query.sessionId as string)
+  ) {
+    const sessionId = socket.handshake.query.sessionId as string;
+    sessionIdMap.set(sessionId, socketId);
+    console.log(
+      `<${shorten(socketId)}> rejoined session (${shorten(sessionId)})`
+    );
+    return sessionId;
+  } else {
+    const newId = v4();
+    sessionIdMap.set(newId, socketId);
+    socket.emit("session_id", newId);
+    console.log(`<${shorten(socketId)}> created session (${shorten(newId)})`);
+    return newId;
+  }
+};
 
 io.on("connection", (socket) => {
-  console.log(`Client connected with id ${socket.id}`);
+  const { id: socketId } = socket;
+  console.log(`<${shorten(socketId)}> connected`);
+  const sessionId = getSessionId(socket);
 
-  socket.on("disconnect", () => {
-    // clean up any now-empty rooms
-    const roomIds = [...rooms].map(([id]) => id);
-    const socketRooms = io.sockets.adapter.rooms;
+  const onLeaveRoom = () => {
+    // if session was only user in room, delete room
+    const roomsToDelete = [...rooms].filter(
+      ([, room]) => !room.sessionIds.some((id) => id !== sessionId)
+    );
 
-    const roomsToDestroy = roomIds.filter((id) => {
-      const socketRoom = socketRooms.get(id);
-      return (
-        !socketRoom || ![...socketRoom].filter((id) => id !== socket.id).length
+    roomsToDelete.forEach(([roomId]) => {
+      console.log(`[${roomId}] was left by (${shorten(sessionId)})`);
+      console.log(
+        `[${roomId}] is empty and will be deleted in 5s if no one joins`
       );
+
+      const deleteTimeout = setTimeout(() => {
+        rooms.delete(roomId);
+        roomsForDeletion.delete(roomId);
+        console.log(`[${roomId}] was deleted`);
+      }, 5000);
+      roomsForDeletion.set(roomId, deleteTimeout);
     });
 
-    roomsToDestroy.forEach((r) => rooms.delete(r));
-
-    // notify still-open room that user has left
+    // notify still-open rooms that user has left
     [...rooms].forEach(([id, room]) => {
-      if (room.memberIds.includes(socket.id)) {
-        const newRoom: Room = removeUserFromRoom(room, socket.id);
+      if (room.sessionIds.includes(sessionId)) {
+        console.log(`[${id}] was left by (${shorten(sessionId)})`);
+        const newRoom = removeUserFromRoom(room, sessionId);
 
         rooms.set(id, newRoom);
         io.to(id).emit("room_update", newRoom);
       }
     });
-  });
+  };
+
+  socket.on("disconnect", onLeaveRoom);
+  socket.on("leave_room", onLeaveRoom);
 
   socket.on("create_room", (roomId, game) => {
     if (!new RegExp(CODE_REGEX).test(roomId)) {
@@ -67,12 +110,13 @@ io.on("connection", (socket) => {
       return null;
     }
 
-    const room = createRoom(socket.id, roomId, game);
+    const room = createRoom(roomId, sessionId, game);
 
     rooms.set(roomId, room);
     socket.join(room.id);
 
     io.to(roomId).emit("room_update", room);
+    console.log(`(${shorten(sessionId)}) created room [${roomId}]`);
   });
 
   socket.on("join_room", (roomId) => {
@@ -88,18 +132,25 @@ io.on("connection", (socket) => {
       return;
     }
 
-    if (room.memberIds.includes(socket.id)) return; // already in
+    if (room.sessionIds.includes(sessionId)) return; // already in
 
-    if (room.memberIds.length >= MAX_CAPACITY[room.gameState.type]) {
+    if (room.sessionIds.length >= MAX_CAPACITY[room.gameState.type]) {
       socket.emit("error", Error.ROOM_FULL);
       return;
     }
 
-    const newRoom = addUserToRoom(room, socket.id);
+    const newRoom = addUserToRoom(room, sessionId);
 
     rooms.set(roomId, newRoom);
     socket.join(roomId);
     io.to(roomId).emit("room_update", newRoom);
+    console.log(`[${roomId}] was joined by (${shorten(sessionId)})`);
+
+    // cancel deletion of room if scheduled
+    if (roomsForDeletion.has(roomId)) {
+      clearTimeout(roomsForDeletion.get(roomId));
+      roomsForDeletion.delete(roomId);
+    }
   });
 
   socket.on("make_game_move", (roomId, move) => {
@@ -111,12 +162,12 @@ io.on("connection", (socket) => {
 
     const newRoom: Room = {
       ...room,
-      gameState: getNextState(room.gameState, room.memberIds, move),
+      gameState: getNextState(room.gameState, room.sessionIds, move),
     };
 
     rooms.set(roomId, newRoom);
-
     io.to(roomId).emit("room_update", newRoom);
+    console.log(`[${roomId}] (${shorten(sessionId)}) made a move`);
   });
 });
 

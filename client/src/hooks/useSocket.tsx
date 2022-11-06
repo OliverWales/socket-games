@@ -11,26 +11,43 @@ import { io, Socket } from "socket.io-client";
 import {
   ClientToServerEvents,
   ServerToClientEvents,
-} from "../../../common/types";
+} from "../../../common/socketEvents";
 
-const SocketContext = createContext<
+const SESSION_ID_KEY = "socket_games_session_id";
+
+type Session =
   | {
+      isConnected: true;
+      sessionId: string;
       socket: Socket<ServerToClientEvents, ClientToServerEvents>;
-      isConnected: boolean;
     }
-  | { isConnected: false }
->({ isConnected: false });
+  | { isConnected: false };
 
-const useInitSocket = () => {
-  const socket: Socket<ServerToClientEvents, ClientToServerEvents> = useMemo(
-    () => io("http://localhost:3000"),
-    []
-  );
+const SocketContext = createContext<Session>({ isConnected: false });
+
+const useInitSocket = (): Session => {
+  const socket: Socket<ServerToClientEvents, ClientToServerEvents> =
+    useMemo(() => {
+      const sessionId = localStorage.getItem(SESSION_ID_KEY);
+      return io(
+        "http://localhost:3000",
+        sessionId ? { query: { sessionId } } : undefined
+      );
+    }, []);
+
   const [isConnected, setIsConnected] = useState(socket.connected);
+  const [sessionId, setSessionId] = useState(
+    localStorage.getItem(SESSION_ID_KEY) ?? undefined
+  );
 
   useEffect(() => {
     socket.on("connect", () => {
       setIsConnected(true);
+    });
+
+    socket.on("session_id", (id) => {
+      localStorage.setItem(SESSION_ID_KEY, id);
+      setSessionId(id);
     });
 
     socket.on("disconnect", () => {
@@ -43,7 +60,13 @@ const useInitSocket = () => {
     };
   }, []);
 
-  return { socket, isConnected };
+  return isConnected && !!socket && !!sessionId
+    ? {
+        isConnected: true,
+        sessionId,
+        socket,
+      }
+    : { isConnected: false };
 };
 
 export const SocketProvider: FC<{

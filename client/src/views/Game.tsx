@@ -1,7 +1,9 @@
-import { Error, MAX_CAPACITY, Room } from "../../../common/types";
+import { Error, Room } from "../../../common/types";
+import { MAX_CAPACITY } from "../../../common/constants";
 import Ellipses from "../components/Ellipses";
 import SimpleModal from "../components/SimpleModal";
 import NumberInARow from "./NumberInARow";
+import { useNavigate } from "react-router-dom";
 
 function Game({
   roomId,
@@ -12,6 +14,8 @@ function Game({
   room: Room | null;
   error: Error | null;
 }) {
+  const navigate = useNavigate();
+
   const renderError = (e: Error) => {
     switch (e) {
       case Error.ROOM_NOT_FOUND:
@@ -33,8 +37,8 @@ function Game({
     );
   }
 
-  if (room.memberIds.length < MAX_CAPACITY[room.gameState.type]) {
-    return (
+  if (room.sessionIds.length < MAX_CAPACITY[room.gameState.type]) {
+    return room.gameState.mode.type === "not_started" ? (
       <SimpleModal
         body={
           <p>
@@ -42,6 +46,16 @@ function Game({
             <Ellipses />
           </p>
         }
+      />
+    ) : (
+      <SimpleModal
+        body={
+          <p>
+            Looks like the other player left
+            <Ellipses />
+          </p>
+        }
+        button={{ onClick: () => navigate("/"), text: "Leave" }}
       />
     );
   }

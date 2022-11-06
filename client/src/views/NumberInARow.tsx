@@ -22,6 +22,7 @@ const TopText = ({
   );
 
   switch (gameState.mode.type) {
+    case "not_started":
     case "in_progress":
       return gameState.mode.turn === playerId ? (
         <p>
@@ -65,22 +66,27 @@ const NumberInARow = ({ room }: { room: Room }) => {
       </p>
     );
 
+  const { sessionId, socket } = s;
+
   const { gameState } = room;
   const turn =
-    gameState.mode.type === "in_progress" ? gameState.mode.turn : undefined;
+    gameState.mode.type === "not_started" ||
+    gameState.mode.type === "in_progress"
+      ? gameState.mode.turn
+      : undefined;
 
   const addToken = (x: number) => {
-    if (turn !== s.socket.id || gameState.heights[x] >= gameState.board.height)
+    if (turn !== sessionId || gameState.heights[x] >= gameState.board.height)
       return;
 
-    s.socket.emit("make_game_move", room.id, x);
+    socket.emit("make_game_move", room.id, x);
   };
 
   const CELL_SIZE = `calc(min(60vw / ${gameState.board.width}, 60vh / ${gameState.board.height}))`;
 
   return (
     <CenteredCard width="80%" noBorder>
-      <TopText playerId={s.socket.id} gameState={gameState} />
+      <TopText playerId={sessionId} gameState={gameState} />
       <table
         style={{
           border: "1px solid white",
@@ -109,7 +115,7 @@ const NumberInARow = ({ room }: { room: Room }) => {
             <tr key={i}>
               {row.map((c, j) => {
                 const cellColour =
-                  c == null ? undefined : c === s.socket.id ? "red" : "gold";
+                  c == null ? undefined : c === sessionId ? "red" : "gold";
 
                 return (
                   <th key={j}>
