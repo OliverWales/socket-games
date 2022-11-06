@@ -14,6 +14,7 @@ import { Error, Room } from "../../common/types";
 import { addUserToRoom, createRoom, removeUserFromRoom } from "./room";
 import { getNextState } from "./game";
 import { shorten } from "./utils";
+import { env } from "process";
 
 // Log key:
 // <socket>: socket ID
@@ -22,12 +23,13 @@ import { shorten } from "./utils";
 
 const app = express();
 app.use(cors());
+app.set("port", process.env.PORT || 3000);
 
 const server = http.createServer(app);
 
 const io = new Server<ClientToServerEvents, ServerToClientEvents>(server, {
   cors: {
-    origin: "http://127.0.0.1:5173",
+    origin: process.env.CLIENT_URL,
     methods: ["GET", "POST"],
   },
 });
