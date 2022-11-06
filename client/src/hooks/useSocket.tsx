@@ -30,9 +30,9 @@ const useInitSocket = (): Session => {
     useMemo(() => {
       const sessionId = localStorage.getItem(SESSION_ID_KEY);
       return io(
-        import.meta.env.SERVER_URL
-          ? `${import.meta.env.SERVER_URL}:${
-              import.meta.env.SERVER_PORT ?? 3000
+        import.meta.env.VITE_SERVER_URL
+          ? `${import.meta.env.VITE_SERVER_URL}:${
+              import.meta.env.VITE_SERVER_PORT ?? 3000
             }`
           : "http://localhost:3000",
         sessionId ? { query: { sessionId } } : undefined
