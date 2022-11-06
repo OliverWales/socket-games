@@ -167,7 +167,6 @@ io.on("connection", (socket) => {
 
     rooms.set(roomId, newRoom);
     io.to(roomId).emit("room_update", newRoom);
-    console.log(`[${roomId}] (${shorten(sessionId)}) made a move`);
   });
 });
 
