@@ -23,7 +23,6 @@ import { env } from "process";
 
 const app = express();
 app.use(cors());
-app.set("port", process.env.PORT || 3000);
 
 const server = http.createServer(app);
 
@@ -173,6 +172,6 @@ io.on("connection", (socket) => {
   });
 });
 
-server.listen(3000, () => {
-  console.log("Server is running!");
+server.listen(process.env.PORT ?? 3000, () => {
+  console.log(`Server is listening on port ${process.env.PORT ?? 3000}`);
 });
