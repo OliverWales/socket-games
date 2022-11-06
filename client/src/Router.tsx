@@ -1,7 +1,7 @@
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
-import Game from "./views/Game";
 import Home from "./views/Home";
 import New from "./views/New";
+import Room from "./views/Room";
 
 const Router = () => {
   const router = createBrowserRouter([
@@ -15,7 +15,7 @@ const Router = () => {
     },
     {
       path: "/:roomId",
-      element: <Game />,
+      element: <Room />,
     },
   ]);
 

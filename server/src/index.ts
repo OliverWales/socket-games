@@ -2,8 +2,8 @@ import cors from "cors";
 import express from "express";
 import http from "http";
 import { Server } from "socket.io";
-import { MAX_CAPACITY } from "../../common/games";
 
+import { MAX_CAPACITY } from "../../common/types";
 import { CODE_REGEX } from "../../common/roomCode";
 import {
   ClientToServerEvents,
@@ -12,6 +12,7 @@ import {
   Room,
 } from "../../common/types";
 import { addUserToRoom, createRoom, removeUserFromRoom } from "./room";
+import { getNextState } from "./game";
 
 const app = express();
 app.use(cors());
@@ -28,7 +29,7 @@ const io = new Server<ClientToServerEvents, ServerToClientEvents>(server, {
 const rooms = new Map<string, Room>();
 
 io.on("connection", (socket) => {
-  console.log(`[INFO] Client connected with id ${socket.id}`);
+  console.log(`Client connected with id ${socket.id}`);
 
   socket.on("disconnect", () => {
     // clean up any now-empty rooms
@@ -70,6 +71,7 @@ io.on("connection", (socket) => {
 
     rooms.set(roomId, room);
     socket.join(room.id);
+
     io.to(roomId).emit("room_update", room);
   });
 
@@ -86,6 +88,8 @@ io.on("connection", (socket) => {
       return;
     }
 
+    if (room.memberIds.includes(socket.id)) return; // already in
+
     if (room.memberIds.length >= MAX_CAPACITY[room.gameState.type]) {
       socket.emit("error", Error.ROOM_FULL);
       return;
@@ -97,8 +101,25 @@ io.on("connection", (socket) => {
     socket.join(roomId);
     io.to(roomId).emit("room_update", newRoom);
   });
+
+  socket.on("make_game_move", (roomId, move) => {
+    const room = rooms.get(roomId);
+    if (!room) {
+      socket.emit("error", Error.ROOM_NOT_FOUND);
+      return;
+    }
+
+    const newRoom: Room = {
+      ...room,
+      gameState: getNextState(room.gameState, room.memberIds, move),
+    };
+
+    rooms.set(roomId, newRoom);
+
+    io.to(roomId).emit("room_update", newRoom);
+  });
 });
 
 server.listen(3000, () => {
-  console.log("[INFO] Server is running!");
+  console.log("Server is running!");
 });

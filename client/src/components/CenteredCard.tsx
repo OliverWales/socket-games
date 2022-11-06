@@ -2,7 +2,9 @@ import { FC, ReactNode } from "react";
 
 const CenteredCard: FC<{
   children: ReactNode;
-}> = ({ children }) => (
+  width?: string;
+  noBorder?: boolean;
+}> = ({ children, width, noBorder = false }) => (
   <div
     style={{
       position: "absolute",
@@ -11,10 +13,11 @@ const CenteredCard: FC<{
       left: 0,
       right: 0,
       margin: "auto",
-      maxWidth: "450px",
+      width,
+      maxWidth: width ?? "450px",
       height: "fit-content",
       padding: "30px",
-      border: "3px solid #ddd",
+      border: noBorder ? undefined : "3px solid #ddd",
       borderRadius: "2px",
       display: "flex",
       flexDirection: "column",

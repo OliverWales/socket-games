@@ -1,6 +1,6 @@
 const GitHubLink = () => (
   <a
-    style={{ padding: "10px" }}
+    style={{ padding: "10px", color: "inherit" }}
     href="https://github.com/OliverWales/socket-games/"
     target="_blank"
   >

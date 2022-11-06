@@ -1,39 +1,17 @@
-import { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
-import { Error, Room } from "../../../common/types";
-import CenteredCard from "../components/CenteredCard";
-import Page from "../components/Page";
-import useSocket from "../hooks/useSocket";
+import { Error, MAX_CAPACITY, Room } from "../../../common/types";
+import Ellipses from "../components/Ellipses";
+import SimpleModal from "../components/SimpleModal";
+import NumberInARow from "./NumberInARow";
 
-function Game() {
-  const s = useSocket();
-  const { roomId } = useParams();
-  const navigate = useNavigate();
-
-  const [error, setError] = useState<Error | null>(null);
-  const [gameState, setGameState] = useState<Room | null>(null);
-
-  // On load, request to join room
-  useEffect(() => {
-    if (!s.isConnected || !roomId) return;
-    s.socket.emit("join_room", roomId);
-  }, [s.isConnected, roomId]);
-
-  if (!s.isConnected) {
-    return <p>Connecting...</p>;
-  }
-
-  // On join, server will respond with either `error` or `game_state`
-  const { socket } = s;
-  socket.on("error", (e) => {
-    console.warn(e);
-    setError(e);
-  });
-
-  socket.on("room_update", (room) => {
-    setGameState(room);
-  });
-
+function Game({
+  roomId,
+  room,
+  error,
+}: {
+  roomId: string;
+  room: Room | null;
+  error: Error | null;
+}) {
   const renderError = (e: Error) => {
     switch (e) {
       case Error.ROOM_NOT_FOUND:
@@ -49,18 +27,25 @@ function Game() {
     }
   };
 
-  if (error) {
+  if (error || !room) {
     return (
-      <CenteredCard>
-        <h1>Error</h1>
-        <p>{renderError(error)}</p>
-        <button onClick={() => navigate(-1)} style={{ padding: "10px 15px" }}>
-          Back
-        </button>
-      </CenteredCard>
+      <SimpleModal heading="Error" body={<p>{renderError(error ?? -1)}</p>} />
     );
   }
 
-  return <Page roomId={roomId}>{JSON.stringify(gameState)}</Page>;
+  if (room.memberIds.length < MAX_CAPACITY[room.gameState.type]) {
+    return (
+      <SimpleModal
+        body={
+          <p>
+            Waiting for another player to join
+            <Ellipses />
+          </p>
+        }
+      />
+    );
+  }
+
+  return <NumberInARow room={room} />;
 }
 export default Game;
