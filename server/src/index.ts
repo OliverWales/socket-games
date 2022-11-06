@@ -26,6 +26,8 @@ app.use(cors());
 
 const server = http.createServer(app);
 
+console.log(`[DEBUG] CORS allow origin: ${process.env.CLIENT_URL}`);
+
 const io = new Server<ClientToServerEvents, ServerToClientEvents>(server, {
   cors: {
     origin: process.env.CLIENT_URL,
