@@ -1,4 +1,5 @@
-import { Room, Game } from "../../common/types";
+import { Room } from "../../common/types";
+import { Game } from "../../common/games";
 import { uniq } from "../../common/utils";
 import { createGame } from "./game";
 

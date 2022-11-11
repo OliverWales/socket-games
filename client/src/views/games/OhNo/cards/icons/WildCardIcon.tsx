@@ -1,6 +1,6 @@
 import { CSSProperties } from "react";
-import { cardColor, glowColour } from "../colourUtils";
-import { Colour } from "../../types";
+import { backgroundColour, borderColour, glowColour } from "../colourUtils";
+import { Colour } from "../../../../../../../common/OhNo/types";
 
 const WildCardIcon = ({
   size,
@@ -10,9 +10,9 @@ const WildCardIcon = ({
   borderSize: string;
 }) => {
   const getCellProps = (colour: Colour): CSSProperties => ({
-    border: `${borderSize} solid ${cardColor(colour)}`,
+    border: `${borderSize} solid ${borderColour(colour)}`,
     borderRadius: borderSize,
-    background: cardColor(colour, 0.7),
+    background: backgroundColour(colour),
     boxShadow: `0 0 calc(${borderSize} * 2) ${glowColour(undefined, 0.5)}`,
   });
 
@@ -24,14 +24,16 @@ const WildCardIcon = ({
         borderSpacing: `calc(${borderSize} / 2)`,
       }}
     >
-      <tr>
-        <td style={getCellProps("red")} />
-        <td style={getCellProps("blue")} />
-      </tr>
-      <tr>
-        <td style={getCellProps("yellow")} />
-        <td style={getCellProps("green")} />
-      </tr>
+      <tbody>
+        <tr>
+          <td style={getCellProps("red")} />
+          <td style={getCellProps("blue")} />
+        </tr>
+        <tr>
+          <td style={getCellProps("yellow")} />
+          <td style={getCellProps("green")} />
+        </tr>
+      </tbody>
     </table>
   );
 };

@@ -4,7 +4,7 @@ import http from "http";
 import { Server, Socket } from "socket.io";
 import { v4 } from "uuid";
 
-import { MAX_CAPACITY } from "../../common/constants";
+import { GAME_CONFIGS } from "../../common/games";
 import {
   ClientToServerEvents,
   ServerToClientEvents,
@@ -134,7 +134,9 @@ io.on("connection", (socket) => {
 
     if (room.sessionIds.includes(sessionId)) return; // already in
 
-    if (room.sessionIds.length >= MAX_CAPACITY[room.gameState.type]) {
+    if (
+      room.sessionIds.length >= GAME_CONFIGS[room.gameState.type].maxPlayers
+    ) {
       socket.emit("error", Error.ROOM_FULL);
       return;
     }

@@ -1,25 +1,66 @@
-import { Colour } from "./types";
+import { Card, Colour } from "../../../../../common/OhNo/types";
+import { isNumberCard, areCompatible } from "../../../../../common/OhNo/utils";
 import OhNoCard from "./cards/OhNoCard";
 import OhNoCardBack from "./cards/OhNoCardBack";
+import CardStack from "./cards/CardStack";
 
 const OhNo = () => {
-  const COLOURS: Colour[] = ["red", "yellow", "green", "blue"];
-  const NUMBERS: number[] = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+  const colours: Colour[] = ["red", "yellow", "green", "blue"];
+  const numbers: number[] = [
+    0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
+  ];
+  const deck: Card[] = colours
+    .map((colour): Card[] => {
+      const numberCards = numbers.map((number) => ({
+        type: "number_card" as const,
+        colour,
+        number,
+      }));
+      return [
+        ...numberCards,
+        { type: "draw_two" as const, colour },
+        { type: "reverse" as const, colour },
+        { type: "skip" as const, colour },
+        { type: "wild" as const },
+        { type: "draw_four" as const },
+      ];
+    })
+    .flat();
+
+  const shuffledDeck = deck.sort(() => Math.random() - 0.5);
+  const hand = shuffledDeck.slice(0, 7);
+  const firstCard = shuffledDeck.slice(7).find(isNumberCard)!;
+
   return (
-    <div>
-      {COLOURS.map((c) => (
-        <div style={{ width: "calc(100px * 17)", display: "flex" }}>
-          {NUMBERS.map((n) => (
-            <OhNoCard card={{ type: "number_card", colour: c, number: n }} />
-          ))}
-          <OhNoCard card={{ type: "draw_two", colour: c }} />
-          <OhNoCard card={{ type: "reverse", colour: c }} />
-          <OhNoCard card={{ type: "skip", colour: c }} />
-          <OhNoCard card={{ type: "wild" }} />
-          <OhNoCard card={{ type: "draw_four" }} />
-          <OhNoCardBack />
-        </div>
-      ))}
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        gap: "100px",
+        marginTop: "100px",
+      }}
+    >
+      <div style={{ display: "flex", gap: "3px" }}>
+        {hand.map((_, i) => (
+          <OhNoCardBack upsideDown key={i} />
+        ))}
+      </div>
+
+      <div style={{ display: "flex", gap: "20px" }}>
+        <CardStack isInteractive />
+        <CardStack topCard={firstCard} />
+      </div>
+
+      <div style={{ display: "flex", gap: "3px" }}>
+        {hand.map((c, i) => (
+          <OhNoCard
+            card={c}
+            isInteractive={areCompatible(c, firstCard, undefined)}
+            key={i}
+          />
+        ))}
+      </div>
     </div>
   );
 };

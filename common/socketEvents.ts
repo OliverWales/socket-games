@@ -1,4 +1,5 @@
-import { Error, Room, Game } from "./types";
+import { Game } from "./games";
+import { Error, Room } from "./types";
 
 export interface ServerToClientEvents {
   error: (type: Error) => void;

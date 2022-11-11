@@ -1,26 +1,27 @@
-import { Board, Game, GameState } from "../../common/types";
+import { Game } from "../../common/games";
+import { Board, InARowGameState } from "../../common/InARow/types";
 import {
   FOUR_IN_A_ROW_WIDTH,
   FOUR_IN_A_ROW_HEIGHT,
   FIVE_IN_A_ROW_WIDTH,
   FIVE_IN_A_ROW_HEIGHT,
-} from "../../common/constants";
+} from "../../common/games";
 import { getCoords, getSparseRef } from "./utils";
 
-export const createGame = (type: Game, turn: string): GameState => {
+export const createGame = (type: Game, turn: string): InARowGameState => {
   switch (
     +type // TS weirdness
   ) {
     case Game.FOUR_IN_A_ROW:
       return {
-        type,
+        type: Game.FOUR_IN_A_ROW,
         board: createBoard(FOUR_IN_A_ROW_WIDTH, FOUR_IN_A_ROW_HEIGHT),
         heights: new Array(FOUR_IN_A_ROW_WIDTH).fill(0),
         mode: { type: "not_started", turn },
       };
     case Game.FIVE_IN_A_ROW:
       return {
-        type,
+        type: Game.FIVE_IN_A_ROW,
         board: createBoard(FIVE_IN_A_ROW_WIDTH, FIVE_IN_A_ROW_HEIGHT),
         heights: new Array(FIVE_IN_A_ROW_WIDTH).fill(0),
         mode: { type: "not_started", turn },
@@ -109,10 +110,10 @@ const getNextTurn = (players: string[], currentTurn: string) => {
 };
 
 export const getNextState = (
-  gameState: GameState,
+  gameState: InARowGameState,
   sessionIds: string[],
   x: number
-): GameState => {
+): InARowGameState => {
   if (
     gameState.mode.type !== "in_progress" &&
     gameState.mode.type !== "not_started"

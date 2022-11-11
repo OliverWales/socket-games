@@ -1,15 +1,16 @@
 import Ellipses from "../../components/Ellipses";
 import useSocket from "../../hooks/useSocket";
-import { GameState, Room } from "../../../../common/types";
+import { Room } from "../../../../common/types";
 import CenteredCard from "../../components/CenteredCard";
 import { useNavigate } from "react-router-dom";
+import { InARowGameState } from "../../../../common/InARow/types";
 
 const TopText = ({
   playerId,
   gameState,
 }: {
   playerId: string;
-  gameState: GameState;
+  gameState: InARowGameState;
 }) => {
   const navigate = useNavigate();
   const homeButton = (
@@ -56,7 +57,7 @@ const TopText = ({
   }
 };
 
-const NumberInARow = ({ room }: { room: Room }) => {
+const InARow = ({ room }: { room: Room }) => {
   const s = useSocket();
   if (!s.isConnected)
     return (
@@ -138,4 +139,4 @@ const NumberInARow = ({ room }: { room: Room }) => {
     </CenteredCard>
   );
 };
-export default NumberInARow;
+export default InARow;

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { generateNewRoomId } from "../../../common/roomCode";
-import { Game } from "../../../common/types";
+import { Game } from "../../../common/games";
 import CenteredCard from "../components/CenteredCard";
 import Page from "../components/Page";
 import useSocket from "../hooks/useSocket";

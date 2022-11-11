@@ -1,8 +1,8 @@
 import { Error, Room } from "../../../common/types";
-import { MAX_CAPACITY } from "../../../common/constants";
+import { GAME_CONFIGS } from "../../../common/games";
 import Ellipses from "../components/Ellipses";
 import SimpleModal from "../components/SimpleModal";
-import NumberInARow from "./games/NumberInARow";
+import InARow from "./games/InARow";
 import { useNavigate } from "react-router-dom";
 
 function Game({
@@ -37,7 +37,7 @@ function Game({
     );
   }
 
-  if (room.sessionIds.length < MAX_CAPACITY[room.gameState.type]) {
+  if (room.sessionIds.length < GAME_CONFIGS[room.gameState.type].maxPlayers) {
     return room.gameState.mode.type === "not_started" ? (
       <SimpleModal
         body={
@@ -60,6 +60,6 @@ function Game({
     );
   }
 
-  return <NumberInARow room={room} />;
+  return <InARow room={room} />;
 }
 export default Game;

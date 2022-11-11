@@ -1,24 +1,51 @@
-import { cardColor } from "./colourUtils";
+import { useState } from "react";
+import { backgroundColour, borderColour } from "./colourUtils";
 import { BIG_NUMBER_PROPS } from "./styles";
 
-const OhNoCardBack = () => {
+const OhNoCardBack = ({
+  upsideDown = false,
+  isInteractive = false,
+}: {
+  upsideDown?: boolean;
+  isInteractive?: boolean;
+}) => {
+  const [isHovered, setIsHovered] = useState(false);
+
+  const handleMouseEnter = () => {
+    setIsHovered(true);
+  };
+  const handleMouseLeave = () => {
+    setIsHovered(false);
+  };
+
   return (
     <div
       style={{
         width: "100px",
         height: "150px",
-        background: cardColor(undefined, 0.5),
-        border: `3px solid ${cardColor(undefined)}`,
+        background: backgroundColour(),
+        border: `3px solid ${borderColour()}`,
         borderRadius: "10px",
         position: "relative",
         boxSizing: "border-box",
+        boxShadow: isInteractive ? "0 0 2px 3px #FFF" : undefined,
+        cursor: isInteractive ? "pointer" : undefined,
+        transform:
+          isInteractive && isHovered
+            ? "translate(0, -5px)"
+            : upsideDown
+            ? "rotate(180deg)"
+            : undefined,
+        transition: `transform .3s ease-out`,
       }}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
     >
       <div
         style={{
           ...BIG_NUMBER_PROPS,
-          border: `3px solid ${cardColor("red")}`,
-          background: cardColor("red", 0.5),
+          border: `3px solid ${borderColour("red")}`,
+          background: backgroundColour("red"),
         }}
       >
         <div
