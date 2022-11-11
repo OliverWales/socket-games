@@ -2,7 +2,7 @@ import { Error, Room } from "../../../common/types";
 import { MAX_CAPACITY } from "../../../common/constants";
 import Ellipses from "../components/Ellipses";
 import SimpleModal from "../components/SimpleModal";
-import NumberInARow from "./NumberInARow";
+import NumberInARow from "./games/NumberInARow";
 import { useNavigate } from "react-router-dom";
 
 function Game({

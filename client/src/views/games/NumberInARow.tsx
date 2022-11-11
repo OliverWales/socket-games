@@ -1,7 +1,7 @@
-import Ellipses from "../components/Ellipses";
-import useSocket from "../hooks/useSocket";
-import { GameState, Room } from "../../../common/types";
-import CenteredCard from "../components/CenteredCard";
+import Ellipses from "../../components/Ellipses";
+import useSocket from "../../hooks/useSocket";
+import { GameState, Room } from "../../../../common/types";
+import CenteredCard from "../../components/CenteredCard";
 import { useNavigate } from "react-router-dom";
 
 const TopText = ({
