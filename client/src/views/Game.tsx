@@ -38,7 +38,7 @@ function Game({
   }
 
   if (room.sessionIds.length < GAME_CONFIGS[room.gameState.type].maxPlayers) {
-    return room.gameState.mode.type === "not_started" ? (
+    return room.gameState.status.type === "not_started" ? (
       <SimpleModal
         body={
           <p>

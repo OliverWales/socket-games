@@ -4,7 +4,7 @@ import http from "http";
 import { Server, Socket } from "socket.io";
 import { v4 } from "uuid";
 
-import { GAME_CONFIGS } from "../../common/games";
+import { GAME_CONFIGS, InARowGameState } from "../../common/games";
 import {
   ClientToServerEvents,
   ServerToClientEvents,
@@ -164,7 +164,10 @@ io.on("connection", (socket) => {
 
     const newRoom: Room = {
       ...room,
-      gameState: getNextState(room.gameState, room.sessionIds, move),
+      gameState: getNextState(room.gameState, room.sessionIds, {
+        playerId: sessionId,
+        move,
+      }) as InARowGameState,
     };
 
     rooms.set(roomId, newRoom);

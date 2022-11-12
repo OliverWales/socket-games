@@ -1,4 +1,4 @@
-import { InARowGameState } from "./InARow/types";
+import { InARowGameState } from "./games";
 
 export enum Error {
   // Avoiding 0 allows cast to bool for easy null checking

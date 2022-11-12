@@ -1,5 +1,10 @@
 import { Card, Colour } from "../../../../../common/OhNo/types";
-import { isNumberCard, areCompatible } from "../../../../../common/OhNo/utils";
+import {
+  isNumberCard,
+  areCompatible,
+  isWildCard,
+  isActionCard,
+} from "../../../../../common/OhNo/utils";
 import OhNoCard from "./cards/OhNoCard";
 import OhNoCardBack from "./cards/OhNoCardBack";
 import CardStack from "./cards/CardStack";
@@ -28,7 +33,19 @@ const OhNo = () => {
     .flat();
 
   const shuffledDeck = deck.sort(() => Math.random() - 0.5);
-  const hand = shuffledDeck.slice(0, 7);
+  const hand = shuffledDeck.slice(0, 7).sort((a, b) => {
+    // sort into colours then values, with action cards to right of colour and
+    // wild cards at right of hand
+    const orderValue = (card: Card) => {
+      if (isWildCard(card)) return Infinity;
+      return (
+        colours.indexOf(card.colour) * 12 +
+        (isActionCard(card) ? 11 : card.number)
+      );
+    };
+
+    return orderValue(a) - orderValue(b);
+  });
   const firstCard = shuffledDeck.slice(7).find(isNumberCard)!;
 
   return (

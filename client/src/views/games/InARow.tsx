@@ -3,7 +3,7 @@ import useSocket from "../../hooks/useSocket";
 import { Room } from "../../../../common/types";
 import CenteredCard from "../../components/CenteredCard";
 import { useNavigate } from "react-router-dom";
-import { InARowGameState } from "../../../../common/InARow/types";
+import { InARowGameState } from "../../../../common/games";
 
 const TopText = ({
   playerId,
@@ -22,10 +22,10 @@ const TopText = ({
     </button>
   );
 
-  switch (gameState.mode.type) {
+  switch (gameState.status.type) {
     case "not_started":
     case "in_progress":
-      return gameState.mode.turn === playerId ? (
+      return gameState.status.turn === playerId ? (
         <p>
           <b style={{ color: "red" }}>Your</b> turn
         </p>
@@ -36,7 +36,7 @@ const TopText = ({
         </p>
       );
     case "won":
-      return gameState.mode.winner == playerId ? (
+      return gameState.status.winner == playerId ? (
         <p>
           <b>You win!!!</b>
           {homeButton}
@@ -71,9 +71,9 @@ const InARow = ({ room }: { room: Room }) => {
 
   const { gameState } = room;
   const turn =
-    gameState.mode.type === "not_started" ||
-    gameState.mode.type === "in_progress"
-      ? gameState.mode.turn
+    gameState.status.type === "not_started" ||
+    gameState.status.type === "in_progress"
+      ? gameState.status.turn
       : undefined;
 
   const addToken = (x: number) => {
